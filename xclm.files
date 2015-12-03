@@ -1,0 +1,9 @@
+hashes/sha0.cc
+hashes/sha0.h
+logging.cc
+logging.h
+patcher.cc
+patcher.h
+xclm.cc
+xclm.h
+version.cc
