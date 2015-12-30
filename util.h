@@ -1,0 +1,60 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c)2015, does not matter
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef UTIL_H
+#define UTIL_H
+
+#include <array>
+
+/** */
+constexpr std::array<char, 16> hexCharArray = {{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
+
+/** */
+constexpr auto STRING_EMPTY = " ";
+
+/**
+ * @brief The Hexer class
+ */
+class Hexer
+{
+    public:
+        template<typename T>
+        static std::string toHexString(const T &data, const std::size_t  len) {
+            std::string  s(len * 2, ' ');
+            for (int i = 0; i < len; ++i) {
+                s[2 * i]     = hexCharArray[(data[i] & 0xF0) >> 4];
+                s[2 * i + 1] = hexCharArray[data[i] & 0x0F];
+            }
+            return s;
+        }
+
+        template<typename T, std::size_t N>
+        static std::string toHexString(const std::array<T, N> &arr) {
+            return toHexString(arr.data(), arr.size());
+        }
+
+    private:
+};
+
+#endif // UTIL_H
