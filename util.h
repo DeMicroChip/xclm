@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c)2015, does not matter
+ * Copyright (c)2015-2016, does not matter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,40 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 #ifndef UTIL_H
 #define UTIL_H
 
 #include <array>
+#include <functional>
+#include <system_error>
+#include <boost/system/error_code.hpp>
 
 /** */
-constexpr std::array<char, 16> hexCharArray = {{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
+constexpr auto STRING_EMPTY = "";
 
-/** */
-constexpr auto STRING_EMPTY = " ";
-
-/**
- * @brief The Hexer class
- */
-class Hexer
-{
-    public:
-        template<typename T>
-        static std::string toHexString(const T &data, const std::size_t  len) {
-            std::string  s(len * 2, ' ');
-            for (int i = 0; i < len; ++i) {
-                s[2 * i]     = hexCharArray[(data[i] & 0xF0) >> 4];
-                s[2 * i + 1] = hexCharArray[data[i] & 0x0F];
-            }
-            return s;
+namespace xclm {
+    /**
+     * @brief let compiler cast from boost::system::error_code to std::error_code
+     */
+    namespace boost {
+        namespace system {
+            struct error_code : ::boost::system::error_code {
+                operator std::error_code () const {
+                   return std::make_error_code(static_cast<std::errc>(value()));
+               }
+            };
         }
+    }
 
-        template<typename T, std::size_t N>
-        static std::string toHexString(const std::array<T, N> &arr) {
-            return toHexString(arr.data(), arr.size());
-        }
+    /** */
+    constexpr std::array<char, 16> hexCharArray = {{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
+    /**
+     * convert container<char> to hex string
+     */
+    template<typename T>
+    static std::string toHexString(const T& arr) {
+        static_assert(std::is_same<char, typename T::value_type>::value ||
+                      std::is_same<unsigned char, typename T::value_type>::value, "Value type has to be type of 'char'");
+        std::string hex;
+        std::for_each(std::begin(arr), std::end(arr),
+                      [&hex](const typename T::value_type &c) {
+                            hex += hexCharArray[(c & 0xF0) >> 4];
+                            hex += hexCharArray[(c & 0x0F)];
+                      });
 
-    private:
-};
+        return hex;
+    }
+}
 
 #endif // UTIL_H

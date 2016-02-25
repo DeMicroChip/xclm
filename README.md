@@ -1,23 +1,16 @@
 ## xclm replacement
-This is a replacement of the Microchip license server for the XC8 compiler.
+This is a replacement of the Microchip license server (xclm) for the XC8/XC16 and ??? compiler.
 
 ## Why?
-Learing of some license and anti cracking mechanism. 
+Learing of some license and anti cracking mechanism.
 But main reason is [Microchip forum](http://www.microchip.com/forums/FindPost/707298)
 
 ## Compile
-Use a modern C++11 compiler. Used editor was QtCreator. Simply import this project and start learning.
+Needs cmake and a modern C++11 compiler. Used editor was QtCreator. Simply import this project and start learning.
 
 ## Usage
-[XCLM replacement and patcher (c)2015]
-
-Copy this file into your XC compiler bin directory. Make a backup of the original xclm file before replacing with this version.
-
---help             this screen
---hashtest         test internal SHA0 implementation
---patch            patch XC compiler
---selfhashing      calculate digest about this file and print
---hashing <file>   calculate digest about given file and print
+Run xclm --help for command line options. This version works with XC8 1.35. Later version can be patch by running --tryrun and --patchunknown . This is known to work on version 1.36 of xc8 compiler.
 
 ## License
 Free and for educational purposes only.
+
