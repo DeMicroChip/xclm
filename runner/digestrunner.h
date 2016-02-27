@@ -24,8 +24,9 @@
 #ifndef DIGESTRUNNER_H
 #define DIGESTRUNNER_H
 
-#include <iostream>
 #include "abstractrunner.h"
+#include <iostream>
+#include <boost/filesystem/operations.hpp>
 
 /**
  * @brief The DigestRunner class

@@ -24,14 +24,16 @@
 #ifndef ABSTRACTPATCHER_H
 #define ABSTRACTPATCHER_H
 
-#include <system_error>
-#include <fstream>
-#include <boost/filesystem.hpp>
-#include <cstdint>
-#include "xclm_error.h"
-#include "hashes/sha0.h"
-#include "util.h"
-
+#include <cerrno>                       // for errno
+#include <algorithm>                    // for search
+#include <array>                        // for array
+#include <boost/filesystem/path.hpp>    // for path
+#include <fstream>                      // for ifstream, ios, etc
+#include <iterator>                     // for distance
+#include <string>                       // for streamsize, string
+#include <system_error>                 // for error_code, etc
+#include "hashes/sha0.h"                // for SHA0, SHA0::digest_t
+#include "xclm_error.h"                 // for make_error_code, NOERROR, etc
 
 /**
  * @brief base class for all file base operation
@@ -42,6 +44,10 @@ class AbstractRunner
         explicit AbstractRunner() = default;
         virtual ~AbstractRunner() = default;
 
+        /**
+         * @brief run
+         * @return
+         */
         virtual std::error_code run() = 0;
 
         /**
@@ -56,6 +62,7 @@ class AbstractRunner
          * @return
          */
         virtual std::error_code checkNeededFilesExists(const boost::filesystem::path &compilerBinDir) const;
+
         /**
          * @brief calc digest in MICROCHIP mode about given file
          * @param progName
@@ -70,8 +77,8 @@ class AbstractRunner
          * @param offset
          * @return
          */
-        template<typename _Container>
-        std::error_code findOffset(const boost::filesystem::path &progName, std::streampos &offset, const _Container& toSearch) const {
+        template<typename _FileSystem, typename _Offset, typename _Container>
+        std::error_code findOffset(const _FileSystem &progName, _Offset &offset, const _Container& toSearch) const {
             std::ifstream  readFile(progName.string(), std::ios::binary | std::ios::in);
             if (readFile.bad())
                 return std::error_code(errno, std::generic_category());
@@ -86,8 +93,8 @@ class AbstractRunner
                 readFile.read(buf.data(), readSize);
 
                 const auto &it = std::search(buf.cbegin(), buf.cend(), std::begin(toSearch), std::end(toSearch));
-                if (it != buf.end()) {// found
-                    offset = std::streampos((fileLength - i) + std::distance(buf.cbegin(), it));
+                if (it != buf.cend()) { // found
+                    offset = _Offset((fileLength - i) + std::distance(buf.cbegin(), it));
                     return NOERROR;
                 }
 
@@ -101,7 +108,8 @@ class AbstractRunner
         }
 
         /**
-         * get size of file
+         * @brief get size of file
+         * @param stream
          */
         template<typename _Stream>
         std::streamsize streamSize(_Stream& stream) const {

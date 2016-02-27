@@ -47,10 +47,11 @@ class AbstractVersion
          * @param offset
          * @param count
          */
-        void printDigest(std::ostream &stream, const uint32_t offset, const uint32_t count = 8U) const {
-            uint32_t index = offset;
+        template<typename _Stream, typename _Offset, typename _Count>
+        void printDigest(_Stream &stream, const _Offset &offset, const _Count &count) const {
+            _Offset index = offset;
             LOG << u8"Dump hash at offset " << offset << std::endl;
-            for (uint32_t i = 0; i <= count; i++) {
+            for (_Count i = 0; i <= count; i++) {
                 index %= hiddenHashTable().size();
                 stream << hiddenHashTable()[index];
                 index++;

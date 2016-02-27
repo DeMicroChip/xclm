@@ -21,9 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <iostream>
 #include "testrunner.h"
-#include "util.h"
+#include <array>                        // for array
+#include <boost/filesystem/operations.hpp>  // for exists, is_directory
+#include <iostream>                     // for operator<<, basic_ostream, etc
+#include "abstractrunner.h"
+#include "hashes/sha0.h"                // for SHA0, SHA0::digest_t
+#include "util.h"                       // for toHexString
+#include "version/abstractversion.h"    // for AbstractVersion
+#include "xclm_error.h"                 // for error_code, make_error_code, etc
+
 
 /**
  * @brief TryRun::run

@@ -25,6 +25,7 @@
 #define XCLM_ERROR_H
 
 #include <system_error>
+#include <boost/system/error_code.hpp>
 
 namespace xclm
 {
@@ -96,6 +97,19 @@ namespace xclm
 
     /** constexpr of non literal is not supported by C++11 */
     #define NOERROR  xclm::make_error_code(xclm::errc::success)
+
+    /**
+     * @brief let compiler cast from boost::system::error_code to std::error_code
+     */
+    namespace boost {
+        namespace system {
+            struct error_code : ::boost::system::error_code {
+                operator std::error_code () const {
+                   return std::make_error_code(static_cast<std::errc>(value()));
+               }
+            };
+        }
+    }
 }
 
 #endif // XCLM_ERROR_H

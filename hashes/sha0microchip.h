@@ -21,35 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef PATCHER_H
-#define PATCHER_H
+#ifndef SHA0MICROCHIP_H
+#define SHA0MICROCHIP_H
 
-#include <boost/filesystem/path.hpp>    // for path
-#include <string>                       // for string, streamsize
-#include <system_error>                 // for error_code
-#include "runner/abstractrunner.h"      // for AbstractRunner
+#include "sha0.h"
+#include <array>
+#include <cstdint>
 
-/** forward declaration */
-class AbstractVersion;
-
-/**
- * @brief The Patcher class
- */
-class PatchRunner : public AbstractRunner
+namespace Hash
 {
-    public:
-        explicit PatchRunner(const AbstractVersion &baseVersion, const boost::filesystem::path &xclmFilePath);
-        virtual ~PatchRunner() = default;
+    class SHA0MicroChip : public SHA0
+    {
+        public:
+            explicit SHA0MicroChip() = default;
+            virtual ~SHA0MicroChip() = default;
 
-        virtual std::error_code run();
+        protected:
+            virtual void sbox3(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D, uint32_t &E, const std::array<uint32_t, 80> &W) const {
+                for (uint32_t t = 40; t < 60; t++) {
+                    uint32_t temp  = leftrotate(5,A) + ((B & C) | (B & D) | (C & D)) + E + W[t] - 0x70E44324;  // modified value and sub op
+                    _sbox(A, B, C, D, E, temp);
+                }
+            }
 
-    protected:
-        std::error_code makeBackup(const boost::filesystem::path &fileName) const;
-        std::error_code patchFile(const boost::filesystem::path &fileName, const std::streamsize &offset, const std::string &strDigest) const;
+            virtual void sbox4(uint32_t &A, uint32_t &B, uint32_t &C, uint32_t &D, uint32_t &E, const std::array<uint32_t, 80> &W) const {
+                for (uint32_t t = 60; t < 80; t++) {
+                    uint32_t temp  = leftrotate(5,A) + (B ^ C ^ D) + E + W[t] - 0x359D3E2A; // modified value and sub op
+                    _sbox(A, B, C, D, E, temp);
+                }
+            }
+    };
+}
 
-        const std::string &mDigestToSearch;
-        const boost::filesystem::path compilerBinDir;
-        const boost::filesystem::path xclmFile;
-};
-
-#endif // PATCHER_H
+#endif // SHA0MICROCHIP_H

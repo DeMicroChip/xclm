@@ -21,14 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include "abstractrunner.h"
 #include <iostream>
 #include <fstream>
-#include "abstractrunner.h"
+#include <boost/filesystem/operations.hpp>
+#include "hashes/sha0microchip.h"
 
 /**
  * @brief files to patch
  */
-const std::array<std::string, 4>  AbstractRunner::filesToPatch = {{ "picc", "picc18", "cgpic", "cgpic18" }};
+const std::array<std::string, 4>  AbstractRunner::filesToPatch = {{ u8"picc", u8"picc18", u8"cgpic", u8"cgpic18" }};
 
 /**
  * @brief AbstractPatcher::checkNeededFilesExists
@@ -38,12 +40,12 @@ const std::array<std::string, 4>  AbstractRunner::filesToPatch = {{ "picc", "pic
 std::error_code AbstractRunner::checkNeededFilesExists(const boost::filesystem::path &compilerBinDir) const
 {
     xclm::boost::system::error_code  ec;
-    for(const auto& f : filesToPatch)
+    for (const auto& file : filesToPatch)
     {
-        auto fileToCheck(compilerBinDir / f);
+        const auto fileToCheck(compilerBinDir / file);
         if (!boost::filesystem::exists(fileToCheck, ec))
         {
-            std::cerr << u8"[ERROR](" << fileToCheck.string() << ") " << ec.message() << ". Code: " << ec.value() << std::endl;
+            std::cerr << u8"[ERROR](" << fileToCheck.string() << ") " << ec.message() << u8". Code: " << ec.value() << std::endl;
             return ec;
         }
     }
@@ -61,14 +63,14 @@ std::error_code AbstractRunner::hashing(const boost::filesystem::path &progName,
     if (readFile.bad())
         return std::error_code(errno, std::generic_category());
 
-    const auto fileLength = streamSize(readFile);
+    const auto &fileLength = streamSize(readFile);
 
-    Hash::SHA0 md(Hash::SHA0_MODE::MICROCHIP);
+    Hash::SHA0MicroChip md;
 
     std::array<char, MAX_READ_SIZE>  buf;
     for (auto i = fileLength; i > 0;)
     {
-        auto readSize = i > MAX_READ_SIZE ? MAX_READ_SIZE : i;
+        const auto readSize = i > MAX_READ_SIZE ? MAX_READ_SIZE : i;
         readFile.read(buf.data(), readSize);
         md.update(buf.data(), readSize);
         i -= readSize;

@@ -24,8 +24,12 @@
 #ifndef TRYRUN_H
 #define TRYRUN_H
 
-#include "abstractrunner.h"
-#include "version/abstractversion.h"
+#include <boost/filesystem/path.hpp>    // for path
+#include <string>                       // for string
+#include <system_error>                 // for error_code
+#include "abstractrunner.h"             // for AbstractRunner
+
+class AbstractVersion;
 
 /**
  * @brief try patching an unknown compiler version

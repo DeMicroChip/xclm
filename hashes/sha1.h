@@ -21,35 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef PATCHER_H
-#define PATCHER_H
+#ifndef SHA1_H
+#define SHA1_H
 
-#include <boost/filesystem/path.hpp>    // for path
-#include <string>                       // for string, streamsize
-#include <system_error>                 // for error_code
-#include "runner/abstractrunner.h"      // for AbstractRunner
+#include "sha0.h"
 
-/** forward declaration */
-class AbstractVersion;
-
-/**
- * @brief The Patcher class
- */
-class PatchRunner : public AbstractRunner
+namespace Hash
 {
-    public:
-        explicit PatchRunner(const AbstractVersion &baseVersion, const boost::filesystem::path &xclmFilePath);
-        virtual ~PatchRunner() = default;
+    class SHA1 : public SHA0
+    {
+        public:
+            explicit SHA1() = default;
+            virtual ~SHA1() = default;
 
-        virtual std::error_code run();
+        protected:
+            virtual void expandW(std::array<uint32_t, 80> &W) const {
+                for(uint32_t t = 16; t < 80; t++) {
+                    W[t] = leftrotate(1,W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
+                }
+            }
+    };
+}
 
-    protected:
-        std::error_code makeBackup(const boost::filesystem::path &fileName) const;
-        std::error_code patchFile(const boost::filesystem::path &fileName, const std::streamsize &offset, const std::string &strDigest) const;
-
-        const std::string &mDigestToSearch;
-        const boost::filesystem::path compilerBinDir;
-        const boost::filesystem::path xclmFile;
-};
-
-#endif // PATCHER_H
+#endif // SHA1_H

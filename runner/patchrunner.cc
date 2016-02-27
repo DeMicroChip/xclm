@@ -21,16 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <chrono>
-#include <iomanip>
-#include <cstring>
-#include <ctime>
 #include "patchrunner.h"
-
+#include <errno.h>                      // for errno
+#include <time.h>                       // for localtime
+#include <array>                        // for array
+#include <chrono>                       // for system_clock
+#include <exception>                    // for exception
+#include <iomanip>                      // for operator<<, put_time
+#include <iostream>                     // for operator<<, basic_ostream, etc
+#include "hashes/sha0.h"                // for SHA0, SHA0::digest_t
+#include "util.h"                       // for toHexString
+#include "version/abstractversion.h"    // for AbstractVersion
+#include "xclm_error.h"                 // for make_error_code, NOERROR, etc
 /**
  * @brief PatchRunner::PatchRunner
  * @param baseVersion
@@ -88,6 +90,8 @@ std::error_code PatchRunner::run()
 
         std::cout << "Patched.]" << std::endl;
     }
+
+    return NOERROR;
 }
 
 /**

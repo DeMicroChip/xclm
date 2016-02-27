@@ -25,29 +25,15 @@
 #define UTIL_H
 
 #include <array>
-#include <functional>
-#include <system_error>
-#include <boost/system/error_code.hpp>
+#include <algorithm>
 
 /** */
 constexpr auto STRING_EMPTY = "";
 
 namespace xclm {
-    /**
-     * @brief let compiler cast from boost::system::error_code to std::error_code
-     */
-    namespace boost {
-        namespace system {
-            struct error_code : ::boost::system::error_code {
-                operator std::error_code () const {
-                   return std::make_error_code(static_cast<std::errc>(value()));
-               }
-            };
-        }
-    }
-
     /** */
     constexpr std::array<char, 16> hexCharArray = {{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' }};
+
     /**
      * convert container<char> to hex string
      */

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c)2015, does not matter
+ * Copyright (c)2015-2016, does not matter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#include <arpa/inet.h>
-#include <array>
 #include "sha0.h"
+#include <netinet/in.h>
+#include <array>
 
-namespace Hash {
-
-SHA0::SHA0(SHA0_MODE mode)
-    : sha0Mode(mode)
+Hash::SHA0::SHA0()
 {
     reset();
 }
 
-void  SHA0::reset()
+void Hash::SHA0::reset()
 {
     length_low = 0;
     length_high = 0;
@@ -50,7 +46,7 @@ void  SHA0::reset()
     corrupted = false;
 }
 
-bool SHA0::digest(digest_t &digest)
+bool Hash::SHA0::digest(digest_t &digest)
 {
     if (corrupted)
         return false;
@@ -67,7 +63,7 @@ bool SHA0::digest(digest_t &digest)
     return true;
 }
 
-void SHA0::update(const void *message_array, int length)
+void Hash::SHA0::update(const void *message_array, int length)
 {
     if (!length) return;
 
@@ -101,35 +97,21 @@ void SHA0::update(const void *message_array, int length)
     }
 }
 
-void SHA0::process_message_block()
+void Hash::SHA0::process_message_block()
 {
-    /* Constants defined for SHA-0/1 */
-    constexpr std::array<uint32_t, 6> K = {{
-        0x5A827999,
-        0x6ED9EBA1,
-        0x8F1BBCDC,
-        0xCA62C1D6,
-        0x70E44324,   // modifed values by microchip
-        0x359D3E2A    // modifed values by microchip
-    }};
-
     std::array<uint32_t, 80> W;
-    int t;
     uint32_t temp;
     uint32_t A, B, C, D, E;
 
     /* Initialize the first 16 words in the array W */
-    for(t = 0; t < 16; t++) {
+    for (uint32_t t = 0; t < 16; t++) {
         W[t] = ((uint32_t)message_block[t * 4]) << 24;
         W[t] |= ((uint32_t)message_block[t * 4 + 1]) << 16;
         W[t] |= ((uint32_t)message_block[t * 4 + 2]) << 8;
         W[t] |= ((uint32_t)message_block[t * 4 + 3]);
     }
 
-    for(t = 16; t < 80; t++) {
-//SHA1         W[t] = circular_shift(1,W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
-        W[t] = W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16];
-    }
+    expandW(W);
 
     A = H[0];
     B = H[1];
@@ -137,53 +119,10 @@ void SHA0::process_message_block()
     D = H[3];
     E = H[4];
 
-    for(t = 0; t < 20; t++) {
-        temp = circular_shift(5,A) + ((B & C) | ((~B) & D)) + E + W[t] + K[0];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = circular_shift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 20; t < 40; t++) {
-        temp = circular_shift(5,A) + (B ^ C ^ D) + E + W[t] + K[1];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = circular_shift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 40; t < 60; t++) {
-        if (sha0Mode == SHA0_MODE::MICROCHIP)
-            temp = circular_shift(5,A) + ((B & C) | (B & D) | (C & D)) + E + W[t] - K[4]; // sub and other value
-        else
-            temp = circular_shift(5,A) + ((B & C) | (B & D) | (C & D)) + E + W[t] + K[2];
-
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = circular_shift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 60; t < 80; t++) {
-        if (sha0Mode == SHA0_MODE::MICROCHIP)
-            temp = circular_shift(5,A) + (B ^ C ^ D) + E + W[t] - K[5]; // sub and other value
-        else
-            temp = circular_shift(5,A) + (B ^ C ^ D) + E + W[t] + K[3];
-
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = circular_shift(30,B);
-        B = A;
-        A = temp;
-    }
+    sbox1(A, B, C, D, E, W);
+    sbox2(A, B, C, D, E, W);
+    sbox3(A, B, C, D, E, W);
+    sbox4(A, B, C, D, E, W);
 
     H[0] = (H[0] + A) & 0xFFFFFFFF;
     H[1] = (H[1] + B) & 0xFFFFFFFF;
@@ -199,7 +138,7 @@ void SHA0::process_message_block()
  * block, process it, and then continue padding into a second
  * block.
  */
-void SHA0::pad_message()
+void Hash::SHA0::pad_message()
 {
     if (message_block_index > 55) {
         message_block[message_block_index++] = 0x80;
@@ -231,5 +170,3 @@ void SHA0::pad_message()
 
     process_message_block();
 }
-
-} // namespace Hash

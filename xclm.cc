@@ -21,17 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <algorithm>
-#include <array>
 #include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <cstring>
-#include <cstdio>
+#include <exception>
+#include <boost/filesystem/path.hpp>
 #include "xclm.h"
 #include "logging.h"
-#include "hashes/sha0.h"
-#include "util.h"
 #include "poptions.h"
 #include "version/v202.h"
 #include "version/vunknown.h"
@@ -40,35 +34,10 @@
 #include "runner/digestrunner.h"
 #include "runner/selftestrunner.h"
 
-
 /**
  * @brief global loggin instance => log
  */
 Logger  LOG;
-
-
-/**
- * @brief test DIGEST0
- */
-static const std::string DIGEST0("0164b8a914cd2a5e74c4f7ff082c4d97f1edf880");
-
-/**
- * @brief simple SHA0 self test method
- */
-static void hastTest()
-{
-    Hash::SHA0 hash;
-    std::array<unsigned char, 3> buf = {{ 'a', 'b', 'c' }};
-    hash.update(buf);
-
-    Hash::SHA0::digest_t digest;
-    hash.digest(digest);
-
-    auto result = xclm::toHexString(digest);
-    std::cout << "Calculated: " << result.c_str() << std::endl;
-    std::cout << "Should be : " << DIGEST0.c_str() << std::endl;
-    std::cout << "Valid     : " << std::boolalpha << (DIGEST0 == result.c_str()) << std::endl;
-}
 
 /**
  * @brief main
@@ -93,7 +62,7 @@ int main(int argc, char *argv[])
             license = LICENSE_MODEL::LICENSE_CPPFULL;
 
         if (po.dumpHashDigit())
-            XclmV202().printDigest(std::cout, po.hashDigitOffset());
+            XclmV202().printDigest(std::cout, po.hashDigitOffset(), 8U);
         else if (po.isLicenseInfo())
             std::cout << u8"Node Configuration" << std::endl;
 
